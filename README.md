@@ -1,10 +1,10 @@
 # Estate Atlas — DarGlobal × Wasalt
 
-A source-grounded property research chatbot. It crawls a bounded set of publicly accessible pages from DarGlobal and Wasalt, retrieves relevant snippets locally, and asks OpenRouter's `openrouter/free` router to answer with source links.
+A source-grounded property research chatbot. It crawls a bounded set of publicly accessible pages from DarGlobal and Wasalt, retrieves relevant snippets locally, and asks OpenRouter's `openrouter/free` router to answer with source links. DarGlobal's public pages can return an Imperva anti-bot response to server crawlers, so the image includes a small, attributed snapshot of its public Saudi project index and two official project pages. Live crawl results override snapshot entries when the same page is accessible.
 
 ## Assignment plan
 
-1. **Collect public data:** At startup, follow each publisher's public sitemap and a small set of seed pages. The crawler first reads `robots.txt` and stops for that publisher if the policy cannot be read. It stays on the listed domains, only requests HTTPS HTML, removes navigation and scripts, waits between pages, and caps the crawl at 45 pages per publisher. Review each website's terms before expanding the crawler or retaining data.
+1. **Collect public data:** At startup, follow each publisher's public sitemap and a small set of seed pages. The crawler first reads `robots.txt` and stops for that publisher if the policy cannot be read. It stays on the listed domains, only requests HTTPS HTML, removes navigation and scripts, waits between pages, and caps the crawl at 45 pages per publisher. The supplemental DarGlobal snapshot is stored in `data/darglobal_seed.json` with direct official source links and a checked date. Review each website's terms before expanding the crawler or retaining data.
 2. **Build the chatbot:** Search retrieved page text for relevant snippets, provide only those excerpts to the language model, and include source URLs in the answer. Listings are snapshots from public pages; they are not guaranteed to be live inventory.
 3. **Use a free model:** Set `OPENROUTER_MODEL=openrouter/free`. This routes to an available free model; model availability and free-tier limits can change. Configure an OpenRouter API key at runtime.
 4. **Containerize:** Build from the included Dockerfile. The app binds to `0.0.0.0:$PORT` and runs as a non-root user.

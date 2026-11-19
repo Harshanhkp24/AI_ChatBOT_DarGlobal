@@ -3,4 +3,5 @@
 __pycache__/
 *.py[cod]
 data/*.json
+!data/darglobal_seed.json
 

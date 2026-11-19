@@ -22,6 +22,7 @@ from pydantic import BaseModel, Field
 ROOT = Path(__file__).parent
 load_dotenv(ROOT / ".env")
 DATA_PATH = Path(os.getenv("DATA_PATH", ROOT / "data" / "documents.json"))
+SEED_DATA_PATH = ROOT / "data" / "darglobal_seed.json"
 SITES = {
     "DarGlobal": {
         "domain": "darglobal.co.uk",
@@ -50,11 +51,18 @@ def sitemap_locations(content: bytes) -> list[str]:
 
 
 def load_documents() -> list[dict[str, Any]]:
-    try:
-        data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
-        return data if isinstance(data, list) else []
-    except (OSError, json.JSONDecodeError):
-        return []
+    documents_by_url: dict[str, dict[str, Any]] = {}
+    for path in (SEED_DATA_PATH, DATA_PATH):
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(data, list):
+            for document in data:
+                if isinstance(document, dict) and document.get("url"):
+                    # Live crawls override the supplemental snapshot for the same page.
+                    documents_by_url[document["url"]] = document
+    return list(documents_by_url.values())
 
 
 def sitemap_urls(site: dict[str, Any]) -> list[str]:
@@ -126,9 +134,9 @@ def refresh_corpus() -> int:
     if scraped:
         DATA_PATH.parent.mkdir(parents=True, exist_ok=True)
         DATA_PATH.write_text(json.dumps(scraped, ensure_ascii=False, indent=2), encoding="utf-8")
-        with _lock:
-            _documents = scraped
-    return len(scraped)
+    with _lock:
+        _documents = load_documents()
+    return len(_documents)
 
 
 def terms(text: str) -> set[str]:
